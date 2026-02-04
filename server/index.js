@@ -11,9 +11,10 @@ const port = 3000
 connectDb()
 
 app.use(express.json())
+const allowedOrigin = process.env.ORIGIN || 'http://localhost:5173'
 app.use(cors({
-    origin:[process.env.ORIGIN],
-    credentials:true
+    origin: [allowedOrigin],
+    credentials: true
 }))
 app.use(cookieParser())
 

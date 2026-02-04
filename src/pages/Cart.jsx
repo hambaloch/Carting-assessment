@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import CartItem from '../components/CartItem'
 import toast from "react-hot-toast"
 import { Link } from 'react-router-dom'
+import { API_BASE } from '../config'
 
 const Cart = () => {
   const user = useSelector((state) => state.auth.user)
@@ -10,11 +11,34 @@ const Cart = () => {
   const totalPrice = items.reduce((total, item) => total + item.price * item.quantity, 0);
 
   const [loading, setLoading] = useState(false)
+  const [showBuyAllModal, setShowBuyAllModal] = useState(false)
+  const [checkoutError, setCheckoutError] = useState(null)
 
-  const orderNow = async () => {
+  const openBuyAllModal = () => {
+    setCheckoutError(null)
+    setShowBuyAllModal(true)
+  }
+
+  const closeBuyAllModal = () => {
+    setShowBuyAllModal(false)
+    setCheckoutError(null)
+  }
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') closeBuyAllModal()
+    }
+    if (showBuyAllModal) {
+      document.addEventListener('keydown', handleEscape)
+      return () => document.removeEventListener('keydown', handleEscape)
+    }
+  }, [showBuyAllModal])
+
+  const confirmPurchase = async () => {
     try {
       setLoading(true)
-      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/cart/checkout`, {
+      setCheckoutError(null)
+      const res = await fetch(`${API_BASE}/api/cart/checkout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -25,12 +49,13 @@ const Cart = () => {
 
       const data = await res.json()
       if (data.success) {
-        window.location.href = data.url;
+        closeBuyAllModal()
+        window.location.href = data.url
       } else {
-        toast.error('Order failed: ' + data.message);
+        setCheckoutError(data.message || 'Order failed.')
       }
     } catch (error) {
-      toast.error('Order failed: ' + error.message);
+      setCheckoutError(error.message || 'Order failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -127,39 +152,89 @@ const Cart = () => {
                   </div>
                 </div>
 
-                {/* Checkout Button */}
+                {/* BuyALL Button - opens confirmation modal */}
                 <button
-                  className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 shadow-lg hover:shadow-xl ${loading
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white'
-                    }`}
-                  onClick={orderNow}
-                  disabled={loading}
+                  className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform focus:outline-none focus:ring-4 focus:ring-green-300 shadow-lg ${
+                    items.length === 0
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 hover:scale-[1.02] hover:shadow-xl text-white'
+                  }`}
+                  onClick={openBuyAllModal}
+                  disabled={items.length === 0}
+                  title={items.length === 0 ? 'Add items to cart to use BuyALL' : 'Check out all items in your cart'}
                 >
-                  {loading ? (
-                    <div className='flex items-center justify-center'>
-                      <svg className='animate-spin -ml-1 mr-3 h-5 w-5 text-white' fill='none' viewBox='0 0 24 24'>
-                        <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
-                        <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
-                      </svg>
-                      Processing...
-                    </div>
-                  ) : (
-                    <div className='flex items-center justify-center'>
-                      <svg className='w-5 h-5 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' />
-                      </svg>
-                      Secure Checkout
-                    </div>
-                  )}
+                  <div className='flex items-center justify-center'>
+                    <svg className='w-5 h-5 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z' />
+                    </svg>
+                    BuyALL
+                  </div>
                 </button>
 
-               
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* BuyALL confirmation modal */}
+      {showBuyAllModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="buyall-modal-title"
+          onClick={(e) => e.target === e.currentTarget && closeBuyAllModal()}
+        >
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 id="buyall-modal-title" className="text-xl font-bold text-gray-900 mb-2">
+              Confirm Purchase
+            </h2>
+            <p className="text-gray-600 mb-4">
+              You are about to purchase <strong>{items.length}</strong> item{items.length !== 1 ? 's' : ''} for a total of{' '}
+              <strong className="text-green-600">${totalPrice.toFixed(2)}</strong>.
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              You will be redirected to secure checkout to complete payment.
+            </p>
+
+            {checkoutError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {checkoutError}
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={closeBuyAllModal}
+                disabled={loading}
+                className="flex-1 py-3 px-4 rounded-xl font-semibold border-2 border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:opacity-50"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={confirmPurchase}
+                disabled={loading}
+                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-gradient-to-r from-green-500 to-teal-600 text-white hover:from-green-600 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-green-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  'Yes'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

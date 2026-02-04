@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff, ShoppingCart, Mail, Lock, User } from 'lucide-react'
 import toast from "react-hot-toast"
-import {  useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { API_BASE } from '../config'
 
 const Login = ({getUser}) => {
   const initialData = {
@@ -27,7 +28,7 @@ const Login = ({getUser}) => {
    
     try{
       setLoading(true)
-      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/login`,{
+      const res = await fetch(`${API_BASE}/api/auth/login`,{
         method:"POST",
         headers:{
           "Content-Type":"application/json"

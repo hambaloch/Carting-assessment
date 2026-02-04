@@ -194,30 +194,55 @@ const decrementQuantity = async (req, res) => {
 
 const checkOut = async (req, res) => {
     try {
+      const { items } = req.body;
+
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cart is empty. Add items before checkout.',
+        });
+      }
+
+      const validItems = items.every(
+        (item) =>
+          item != null &&
+          typeof item.title === 'string' &&
+          typeof item.price === 'number' &&
+          item.price >= 0 &&
+          typeof item.quantity === 'number' &&
+          item.quantity >= 1
+      );
+      if (!validItems) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid cart data. Each item must have title, price, and quantity.',
+        });
+      }
+
+      const lineItems = items.map((item) => ({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: item.title,
+          },
+          unit_amount: Math.round(item.price * 100),
+        },
+        quantity: item.quantity,
+      }));
+
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode: 'payment',
-        line_items: req.body.items.map(item => {
-          return {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: item.title,
-              },
-              unit_amount: item.price * 100, 
-            },
-            quantity: item.quantity,
-          };
-        }),
+        line_items: lineItems,
         success_url: `${process.env.ORIGIN}/success`,
         cancel_url: `${process.env.ORIGIN}/cancel`,
       });
-  
+
       res.status(200).json({ success: true, url: session.url });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: error.message,
+        message: error.message || 'Checkout failed. Please try again.',
       });
     }
   };

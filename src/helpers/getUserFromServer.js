@@ -1,5 +1,7 @@
+import { API_BASE } from '../config';
+
 const getUserFromServer = async() =>{
-    const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/user`,{
+    const res = await fetch(`${API_BASE}/api/auth/user`,{
         credentials:'include'
     })
     const data = await res.json()

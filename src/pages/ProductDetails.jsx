@@ -5,6 +5,7 @@ import toast from "react-hot-toast"
 import { useDispatch, useSelector } from "react-redux"
 import Loader from '../components/Loader'
 import { addToCart } from '../app/slices/cartSlice'
+import { API_BASE } from '../config'
 const ProductDetails = () => {
     const { id } = useParams()
     const [product, setProduct] = useState(null)
@@ -49,7 +50,7 @@ const ProductDetails = () => {
         }
         
         try {
-            const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/cart/add`, {
+            const res = await fetch(`${API_BASE}/api/cart/add`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

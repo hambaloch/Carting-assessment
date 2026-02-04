@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Eye, EyeOff, ShoppingCart, Mail, Lock, User } from 'lucide-react'
 import toast from "react-hot-toast"
 import { useNavigate } from 'react-router-dom'
+import { API_BASE } from '../config'
 
 const Register = () => {
   const initialData = {
@@ -29,7 +30,7 @@ const Register = () => {
 
     try {
       setLoading(true)
-      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/register`, {
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

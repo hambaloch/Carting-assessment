@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { setUser } from '../app/slices/authSlice';
 import toast from 'react-hot-toast';
 import { CiLight, CiDark, CiMenuBurger } from 'react-icons/ci';
+import { API_BASE } from '../config';
 
 const Navbar = ({ isDarkMode, setIsDarkMode }) => {
   const user = useSelector((state) => state.auth.user);
@@ -12,7 +13,7 @@ const Navbar = ({ isDarkMode, setIsDarkMode }) => {
   const dispatch = useDispatch();
 
   const handleLogout = async () => {
-    const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/logout`, {
+    const res = await fetch(`${API_BASE}/api/auth/logout`, {
       credentials: 'include',
     });
     const data = await res.json();

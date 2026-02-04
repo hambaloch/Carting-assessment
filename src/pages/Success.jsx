@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
 import Loader from '../components/Loader'
+import { API_BASE } from '../config'
 
 const Success = ({getUser}) => {
   
@@ -10,7 +10,7 @@ const Success = ({getUser}) => {
  
   const clearCart = async() =>{
     
-    const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/cart/clear`,{
+    const res = await fetch(`${API_BASE}/api/cart/clear`,{
       credentials:'include'
     })
     const data = await res.json()
