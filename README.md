@@ -18,22 +18,22 @@ Frontend: http://localhost:5173 · Backend: http://localhost:3000
 
 ---
 
-## Setup issues we ran into (and fixes)
+## Setup issues I ran into (and fixes)
 
 - **"No versions available" / broken installs**  
-  A couple of dependencies in `package.json` pointed to packages that don’t exist on npm anymore. We swapped them for working alternatives (e.g. `react-hot-toast`, `nodemailer`) so `npm install` succeeds.
+  A couple of dependencies in `package.json` pointed to packages that don’t exist on npm anymore. Swapped them for working alternatives (e.g. `react-hot-toast`, `nodemailer`) so `npm install` succeeds.
 
 - **Requests going to `undefined/api/..."**  
-  The app expects a backend URL from `VITE_SERVER_URL`. If that’s not set, the frontend was literally calling `undefined/api/...`. We added a small config that falls back to `http://localhost:3000` when the env var is missing, but **the app runs more reliably if you set the API URL in `.env`** (see `.env.example`).
+  The app expects a backend URL from `VITE_SERVER_URL`. If that’s not set, the frontend was literally calling `undefined/api/...`. Added a small config that falls back to `http://localhost:3000` when the env var is missing, but **the app runs more reliably if you set the API URL in `.env`** (see `.env.example`).
 
 - **CORS errors on login/register**  
-  The server only allows requests from `ORIGIN`. If that wasn’t set, the browser blocked the calls. We added a fallback so `http://localhost:5173` is allowed when `ORIGIN` is unset—again, **setting `ORIGIN` in `server/.env` is the right way** so you’re not relying on defaults.
+  The server only allows requests from `ORIGIN`. If that wasn’t set, the browser blocked the calls. Added a fallback so `http://localhost:5173` is allowed when `ORIGIN` is unset—again, **setting `ORIGIN` in `server/.env` is the right way** so you’re not relying on defaults.
 
 - **"secretOrPrivateKey must have a value"**  
   Login uses JWT and needs `JWT_SECRET` in `server/.env`. Without it, sign-in fails. Add a long random string there (and keep it secret).
 
 - **MongoDB not running**  
-  Auth and cart need MongoDB. We added a `docker-compose.yml` so you can run MongoDB locally with `docker-compose up -d` and point the server at it via `MONGO_URI` in `server/.env`.
+  Auth and cart need MongoDB. Added a `docker-compose.yml` so you can run MongoDB locally with `docker-compose up -d` and point the server at it via `MONGO_URI` in `server/.env`.
 
 **TL;DR:** Copy the `.env.example` files, add your real values (especially the API endpoint and server env vars), and you’ll avoid most of these issues and have a smoother run.
 
